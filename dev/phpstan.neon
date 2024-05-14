@@ -1,0 +1,11 @@
+parameters:
+	level: 9
+	paths:
+		- ../src
+		- ../tests
+	ignoreErrors:
+		-
+			message: "|^Call to an undefined method.+fixXmlConfig|"
+			count: 1
+			path: ../src/DependencyInjection/Configuration.php
+	tmpDir: ../var/cache/phpstan

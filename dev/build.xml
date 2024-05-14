@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<project basedir="." default="help">
+
+	<property name="rootdir" value="${project.basedir}/" override="true" />
+	<property name="bindir" value="${rootdir}vendor/bin/" override="false" />
+	<property name="srcdir" value="${rootdir}src/" override="false" />
+	<property name="devdir" value="${rootdir}dev/" override="false" />
+
+	<target name="help" description="Shows available targets">
+		<exec executable="${bindir}phing" passthru="true">
+			<arg value="-f" />
+			<arg value="${phing.file}" />
+			<arg value="-l" />
+		</exec>
+	</target>
+
+	<target name="lint" description="Performs syntax check of source code files">
+		<phplint haltonfailure="true">
+			<fileset dir="${rootdir}">
+				<include name="src/" />
+				<include name="test/unit/" />
+			</fileset>
+		</phplint>
+	</target>
+
+	<target name="phpunit" description="Runs unit tests with PHPUnit">
+		<exec executable="${bindir}phpunit" passthru="true">
+			<arg line="-c ${devdir}" />
+		</exec>
+	</target>
+
+	<target name="phpcs" description="Finds coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
+		<exec executable="${bindir}phpcs" passthru="true">
+			<arg line="--standard=${devdir}phpcs.xml" />
+			<arg line="-p" />
+			<arg line="--report=full" />
+		</exec>
+	</target>
+
+	<target name="phpmd" description="Performs project mess detection using PHPMD and print human readable output. Intended for usage on the command line before committing.">
+		<exec executable="${bindir}phpmd" passthru="true">
+			<arg line="${srcdir}" />
+			<arg line="text" />
+			<arg line="${devdir}phpmd.xml" />
+		</exec>
+	</target>
+
+	<target name="phpstan" description="Performs static analysis using PHPStan.">
+		<exec executable="${bindir}phpstan" passthru="true">
+			<arg line="--configuration=${devdir}phpstan.neon" />
+		</exec>
+	</target>
+
+	<target name="rector" description="Performs static analysis using Rector.">
+		<exec executable="${bindir}rector" passthru="true">
+			<arg line="-c ${devdir}rector.php" />
+			<arg line="--dry-run" />
+		</exec>
+	</target>
+
+	<target name="codecheck" depends="lint,phpunit,phpcs,phpmd,phpstan,rector" description="Runs code-related targets (lint, phpunit, etc)" />
+
+	<target name="coverage" description="Runs code coverage with PHPUnit">
+		<exec executable="${bindir}phpunit" passthru="true">
+			<arg line="--coverage-html ${rootdir}build/coverage/" />
+			<arg line="-c ${rootdir}dev/phpunit.xml" />
+		</exec>
+	</target>
+
+</project>

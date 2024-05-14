@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<project basedir="." default="build">
+
+	<property name="rootdir" value="${project.basedir}/" override="true"/>
+	<property name="bindir" value="${rootdir}bin/" override="false"/>
+	<property name="devdir" value="${rootdir}dev/" override="false"/>
+	<property name="vendorbindir" value="${rootdir}vendor/bin/" override="false"/>
+
+	<target name="build" depends="prepare,lint,phpunit,phpcs,phpmd,phpstan,rector"/>
+
+	<target name="prepare" depends="clean">
+		<mkdir dir="${rootdir}build/"/>
+		<mkdir dir="${rootdir}build/coverage/"/>
+		<mkdir dir="${rootdir}build/logs/"/>
+	</target>
+
+	<target name="clean">
+		<if>
+			<available file="${rootdir}build/" type="dir"/>
+			<then>
+				<delete dir="${rootdir}build/"/>
+			</then>
+		</if>
+	</target>
+
+	<target name="lint" description="Performs syntax check of sourcecode files">
+		<phplint haltonfailure="true">
+			<fileset dir="${rootdir}">
+				<include name="src/"/>
+				<include name="tests/unit/"/>
+			</fileset>
+		</phplint>
+	</target>
+
+	<target name="phpunit">
+		<exec executable="${vendorbindir}phpunit" logoutput="true" passthru="true">
+			<!--<env key="XDEBUG_MODE" value="coverage"/>-->
+			<arg line="-c ${devdir}phpunit.xml"/>
+			<arg line="--log-junit ${rootdir}build/logs/junit.xml"/>
+			<arg line="--coverage-clover ${rootdir}build/logs/clover.xml"/>
+			<arg line="--coverage-html ${rootdir}build/coverage/"/>
+			<arg line="--coverage-crap4j ${rootdir}build/logs/crap4j.xml"/>
+		</exec>
+	</target>
+
+	<target name="phpcs">
+		<exec executable="${vendorbindir}phpcs" escape="false" logoutput="true" passthru="true">
+			<arg line="--standard=${devdir}phpcs.xml"/>
+			<arg line="-p"/>
+			<arg line="--report=checkstyle"/>
+			<arg line="--report-file=${rootdir}build/logs/checkstyle.xml"/>
+		</exec>
+	</target>
+
+	<target name="phpmd">
+		<exec executable="${vendorbindir}phpmd" logoutput="true" passthru="true">
+			<arg line="${rootdir}src"/>
+			<arg line="xml"/>
+			<arg line="${devdir}phpmd.xml"/>
+			<arg line="--reportfile ${rootdir}build/logs/pmd.xml"/>
+		</exec>
+	</target>
+
+	<target name="phpstan">
+		<exec executable="${bindir}/phpstan" logoutput="true" passthru="true">
+		</exec>
+	</target>
+
+	<target name="rector">
+		<exec executable="${bindir}/rector" logoutput="true" passthru="true">
+			<arg line="--dry-run"/>
+		</exec>
+	</target>
+
+</project>
